@@ -4,6 +4,7 @@
 .pub-cache/
 .pub/
 build/
+installer/
 pubspec.lock
 
 # Scaffolding hasil generate (lihat tool/ci/prepare.sh)

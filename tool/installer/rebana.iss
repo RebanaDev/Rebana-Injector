@@ -1,7 +1,7 @@
-# Installer Windows untuk Rebana Injector.
-# Dijalankan CI setelah `flutter build windows`, atau manual:
-#   ISCC.exe tool\installer\rebana.iss
-# Output: installer\rebana-injector-setup.exe
+; Installer Windows untuk Rebana Injector.
+; Dijalankan CI setelah `flutter build windows`, atau manual:
+;   ISCC.exe tool\installer\rebana.iss
+; Output: installer\rebana-injector-setup.exe
 
 #define AppName "Rebana Injector"
 #define AppVersion "1.1.0"
