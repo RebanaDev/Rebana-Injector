@@ -7,12 +7,13 @@ build/
 pubspec.lock
 
 # Scaffolding hasil generate (lihat tool/ci/prepare.sh)
-android/
-windows/
-linux/
-macos/
-ios/
-web/
+# Slash di depan = hanya di root, supaya tool/android/ tetap ikut ke-commit.
+/android/
+/windows/
+/linux/
+/macos/
+/ios/
+/web/
 
 # Editor / OS
 .idea/
