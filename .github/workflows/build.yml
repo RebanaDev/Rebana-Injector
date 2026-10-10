@@ -46,7 +46,9 @@ jobs:
         run: |
           if ("${{ matrix.os }}" -eq "windows-latest") {
             flutter build windows --release
-            Compress-Archive -Path windows/runner/Release -DestinationPath '${{ matrix.out }}'
+            # Flutter taruh output di build/windows/<arch>/runner/Release, arch bisa berubah.
+            $src = Get-ChildItem -Path 'build/windows/*/runner/Release' -Directory | Select-Object -First 1
+            Compress-Archive -Path $src.FullName -DestinationPath '${{ matrix.out }}'
           } else {
             flutter build apk --release
             Move-Item -Force build/app/outputs/flutter-apk/app-release.apk '${{ matrix.out }}'
@@ -69,6 +71,6 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/rebana-injector-apk.apk
-            dist/rebana-injector-exe.zip
+            dist/**/*.apk
+            dist/**/*.zip
           generate_release_notes: true
