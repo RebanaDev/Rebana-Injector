@@ -10,10 +10,11 @@ langsung tersalin ke folder `scripts` Growtopia. Gak ada tombol lain.
 
 ## Cara pakai
 
-1. Jalankan app.
-2. Android (11+): sekali tekan **Akses File** → nyalakan **Akses semua file** → balik
-   ke app → **Inject**. Android 10 ke bawah langsung jalan.
-3. Selesai. Growtopia akan baca `loader_rebana.lua` dari folder itu.
+1. Buka app. Belum ada yang terjadi — app **tidak** nulis apa pun sampai kamu tekan **Inject**.
+2. Android (11+): sekali tekan **Akses File** → nyalakan **Akses semua file** → baru tekan **Inject**.
+   Android 10 ke bawah langsung bisa tekan **Inject**.
+3. Setelah menulis, app baca balik filenya dan bandingkan byte per byte sama dengan asset.
+   Kalau panjang atau isi beda, statusnya **GAGAL**, bukan "Berhasil".
 
 ## Build sendiri
 

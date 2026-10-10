@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -71,14 +72,8 @@ class InjectPage extends StatefulWidget {
 }
 
 class _InjectPageState extends State<InjectPage> {
-  String _status = 'Menyiapkan...';
-  bool _busy = true;
-
-  @override
-  void initState() {
-    super.initState();
-    inject();
-  }
+  String _status = 'Belum di-inject.\nTekan Inject untuk menyalin script.';
+  bool _busy = false;
 
   Future<void> inject() async {
     setState(() {
@@ -90,19 +85,34 @@ class _InjectPageState extends State<InjectPage> {
     try {
       if (Platform.isAndroid && !await _allFilesAccessGranted()) {
         message =
-            'Akses folder ditolak.\n'
+            'GAGAL: akses folder belum diizinkan.\n'
             'Tekan "Akses File" -> nyalakan "Akses semua file" -> Inject ulang.';
       } else {
         final dir =
             Directory(targetDirPath(Platform.operatingSystem, Platform.environment));
         await dir.create(recursive: true);
-        final bytes = await rootBundle.load(kAssetPath);
+        if (!dir.existsSync()) {
+          throw StateError('folder tujuan tidak terbentuk: ${dir.path}');
+        }
+
+        final expected = (await rootBundle.load(kAssetPath)).buffer.asUint8List();
         final out = File('${dir.path}${Platform.pathSeparator}$kScriptName');
-        await out.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
-        message = 'Berhasil!\n${out.path}';
+        await out.writeAsBytes(expected, flush: true);
+
+        // Jangan percaya writeAsBytes: baca balik dan bandingkan byte per byte.
+        if (!out.existsSync()) {
+          throw StateError('file tidak ada setelah ditulis: ${out.path}');
+        }
+        final written = out.readAsBytesSync();
+        if (written.length != expected.length || !listEquals(written, expected)) {
+          throw StateError(
+              'isi file tidak cocok (tertulis ${written.length} dari ${expected.length} byte)');
+        }
+
+        message = 'OK\n${out.path}\n${written.length} byte, isi terverifikasi.';
       }
     } catch (e) {
-      message = 'Gagal: $e';
+      message = 'GAGAL: $e';
     }
 
     if (!mounted) return;
