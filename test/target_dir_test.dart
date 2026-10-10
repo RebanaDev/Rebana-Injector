@@ -2,15 +2,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rebana_injector/main.dart';
 
 void main() {
-  test('windows memakai %APPDATA%', () {
+  test('windows memakai %LOCALAPPDATA%, bukan Roaming', () {
     expect(
-      targetDirPath('windows', {'APPDATA': r'C:\Users\me\AppData\Roaming'}),
-      r'C:\Users\me\AppData\Roaming\Growtopia\scripts',
+      targetDirPath('windows', {
+        'LOCALAPPDATA': r'C:\Users\me\AppData\Local',
+        'APPDATA': r'C:\Users\me\AppData\Roaming',
+      }),
+      r'C:\Users\me\AppData\Local\Growtopia\scripts',
     );
   });
 
-  test('windows tanpa APPDATA dilempar, bukan path ngawur', () {
-    expect(() => targetDirPath('windows', const {}), throwsStateError);
+  test('windows tanpa LOCALAPPDATA dilempar, bukan path ngawur', () {
+    expect(
+      () => targetDirPath('windows', {'APPDATA': r'C:\Users\me\AppData\Roaming'}),
+      throwsStateError,
+    );
   });
 
   test('android memakai shared storage scripts dir', () {

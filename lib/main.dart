@@ -10,15 +10,15 @@ const String kIconPath = 'assets/icon.jpg';
 const MethodChannel _access = MethodChannel('rebana/access');
 
 /// Folder tujuan Growtopia untuk [os]. Murni, tanpa I/O -> bisa diuji.
-/// [env] dipakai Windows (APPDATA), diabaikan di platform lain.
+/// [env] dipakai Windows (LOCALAPPDATA), diabaikan di platform lain.
 String targetDirPath(String os, Map<String, String> env) {
   switch (os) {
     case 'windows':
-      final appdata = env['APPDATA'];
-      if (appdata == null || appdata.isEmpty) {
-        throw StateError('Environment variable APPDATA tidak ditemukan');
+      final local = env['LOCALAPPDATA'];
+      if (local == null || local.isEmpty) {
+        throw StateError('Environment variable LOCALAPPDATA tidak ditemukan');
       }
-      return '$appdata\\Growtopia\\scripts';
+      return '$local\\Growtopia\\scripts';
     case 'android':
       return '/storage/emulated/0/Android/media/com.rtsoft.growtopia/scripts';
     default:
@@ -27,7 +27,7 @@ String targetDirPath(String os, Map<String, String> env) {
 }
 
 String get _displayTarget => Platform.isWindows
-    ? r'%appdata%\Growtopia\scripts'
+    ? r'%LOCALAPPDATA%\Growtopia\scripts'
     : 'Android/media/com.rtsoft.growtopia/scripts';
 
 Future<bool> _allFilesAccessGranted() async {
@@ -75,6 +75,9 @@ class _InjectPageState extends State<InjectPage> {
   String _status = 'Belum di-inject.\nTekan Inject untuk menyalin script.';
   bool _busy = false;
 
+  Directory get _target =>
+      Directory(targetDirPath(Platform.operatingSystem, Platform.environment));
+
   Future<void> inject() async {
     setState(() {
       _busy = true;
@@ -88,8 +91,7 @@ class _InjectPageState extends State<InjectPage> {
             'GAGAL: akses folder belum diizinkan.\n'
             'Tekan "Akses File" -> nyalakan "Akses semua file" -> Inject ulang.';
       } else {
-        final dir =
-            Directory(targetDirPath(Platform.operatingSystem, Platform.environment));
+        final dir = _target;
         await dir.create(recursive: true);
         if (!dir.existsSync()) {
           throw StateError('folder tujuan tidak terbentuk: ${dir.path}');
@@ -122,6 +124,36 @@ class _InjectPageState extends State<InjectPage> {
     });
   }
 
+  Future<void> _openFolder() async {
+    try {
+      final dir = _target;
+      if (!dir.existsSync()) await dir.create(recursive: true);
+      if (Platform.isWindows) {
+        await Process.run('explorer.exe', [dir.path]);
+      } else {
+        final relative =
+            dir.path.replaceFirst('/storage/emulated/0/', '').replaceAll('\\', '/');
+        await Process.run('am', [
+          'start',
+          '-a',
+          'android.intent.action.VIEW',
+          '-d',
+          'content://com.android.externalstorage.documents/document/primary%3A'
+              '${Uri.encodeComponent(relative)}',
+        ]);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _status = 'GAGAL buka folder: $e');
+    }
+  }
+
+  void _copyPath() {
+    Clipboard.setData(ClipboardData(text: _target.path));
+    if (!mounted) return;
+    setState(() => _status = 'Path disalin:\n${_target.path}');
+  }
+
   void _openAccessSettings() {
     _access.invokeMethod<void>('openSettings').catchError((Object _) {});
   }
@@ -131,7 +163,7 @@ class _InjectPageState extends State<InjectPage> {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
+          constraints: const BoxConstraints(maxWidth: 520),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -167,22 +199,32 @@ class _InjectPageState extends State<InjectPage> {
                 if (_busy)
                   const CircularProgressIndicator()
                 else
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
                       FilledButton.icon(
                         onPressed: inject,
                         icon: const Icon(Icons.bolt),
                         label: const Text('Inject'),
                       ),
-                      if (Platform.isAndroid) ...[
-                        const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: _openFolder,
+                        icon: const Icon(Icons.folder_open),
+                        label: const Text('Buka Folder'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _copyPath,
+                        icon: const Icon(Icons.copy),
+                        label: const Text('Salin Path'),
+                      ),
+                      if (Platform.isAndroid)
                         OutlinedButton.icon(
                           onPressed: _openAccessSettings,
                           icon: const Icon(Icons.settings),
                           label: const Text('Akses File'),
                         ),
-                      ],
                     ],
                   ),
               ],

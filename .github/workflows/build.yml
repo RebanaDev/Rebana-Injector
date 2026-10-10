@@ -49,6 +49,8 @@ jobs:
             # Flutter taruh output di build/windows/<arch>/runner/Release, arch bisa berubah.
             $src = Get-ChildItem -Path 'build/windows/*/runner/Release' -Directory | Select-Object -First 1
             Compress-Archive -Path $src.FullName -DestinationPath '${{ matrix.out }}'
+            # Installer .exe (bukan exe mentah). Inno Setup sudah ada di windows-latest.
+            & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" tool\installer\rebana.iss
           } else {
             flutter build apk --release
             Move-Item -Force build/app/outputs/flutter-apk/app-release.apk '${{ matrix.out }}'
@@ -58,6 +60,13 @@ jobs:
         with:
           name: ${{ matrix.out }}
           path: ${{ matrix.out }}
+
+      - name: Upload installer
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer
+          path: installer/rebana-injector-setup.exe
 
   release:
     name: Release
@@ -73,4 +82,5 @@ jobs:
           files: |
             dist/**/*.apk
             dist/**/*.zip
+            dist/**/*.exe
           generate_release_notes: true

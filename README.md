@@ -6,7 +6,7 @@ langsung tersalin ke folder `scripts` Growtopia. Gak ada tombol lain.
 | Platform | Tujuan |
 | --- | --- |
 | Android | `/storage/emulated/0/Android/media/com.rtsoft.growtopia/scripts/` |
-| Windows  | `%appdata%\Growtopia\scripts` |
+| Windows  | `%LOCALAPPDATA%\Growtopia\scripts` (`AppData\Local`, **bukan** `Roaming`) |
 
 ## Cara pakai
 
@@ -15,6 +15,9 @@ langsung tersalin ke folder `scripts` Growtopia. Gak ada tombol lain.
    Android 10 ke bawah langsung bisa tekan **Inject**.
 3. Setelah menulis, app baca balik filenya dan bandingkan byte per byte sama dengan asset.
    Kalau panjang atau isi beda, statusnya **GAGAL**, bukan "Berhasil".
+4. **Buka Folder** membuka folder tujuan di file manager supaya bisa dicek sendiri.
+   **Salin Path** menyalin path lengkap ke clipboard (berguna di Android kalau
+   tidak ada file manager yang responding).
 
 ## Build sendiri
 
@@ -49,8 +52,13 @@ test/                      cek path tujuan per platform
 assets/icon.jpg            ikon launcher (1024x1024)
 assets/loader_rebana.lua   payload yang di-inject
 tool/android/              overlay AndroidManifest.xml + MainActivity.kt
+tool/installer/rebana.iss  installer Windows (Inno Setup)
 tool/ci/prepare.sh         generate scaffolding lalu pasang overlay
 ```
+
+Windows: pakai `rebana-injector-setup.exe` (ada Start Menu + shortcut opsional di
+Desktop). Exe mentah `rebana-injector-exe.zip` tetap disediakan buat yang mau
+portable.
 
 Scaffolding `android/` dan `windows/` sengaja tidak di-commit karena isinya binary
 (`gradle-wrapper.jar`, `.ico`). Semuanya di-generate di CI dari `tool/ci/prepare.sh`.
