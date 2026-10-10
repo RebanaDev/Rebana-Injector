@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: APK (Android)
+            out: rebana-injector-apk.apk
+          - os: windows-latest
+            label: EXE (Windows)
+            out: rebana-injector-exe.zip
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate platform scaffolding
+        run: bash tool/ci/prepare.sh
+
+      - run: flutter pub get
+
+      - run: flutter test test/target_dir_test.dart
+
+      - name: Generate launcher icons
+        run: dart run flutter_launcher_icons
+
+      - name: Build
+        shell: pwsh
+        run: |
+          if ("${{ matrix.os }}" -eq "windows-latest") {
+            flutter build windows --release
+            Compress-Archive -Path windows/runner/Release -DestinationPath '${{ matrix.out }}'
+          } else {
+            flutter build apk --release
+            Move-Item -Force build/app/outputs/flutter-apk/app-release.apk '${{ matrix.out }}'
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.out }}
+          path: ${{ matrix.out }}
+
+  release:
+    name: Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/rebana-injector-apk.apk
+            dist/rebana-injector-exe.zip
+          generate_release_notes: true

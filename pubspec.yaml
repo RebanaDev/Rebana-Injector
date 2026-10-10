@@ -1,0 +1,34 @@
+name: rebana_injector
+description: Rebana Injector - installer script Growtopia untuk Android dan Windows.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon.jpg
+    - assets/loader_rebana.lua
+
+flutter_launcher_icons:
+  android: launcher_icon
+  ios: false
+  image_path: assets/icon.jpg
+  adaptive_icon_background: "#0B0F14"
+  adaptive_icon_foreground: assets/icon.jpg
+  remove_alpha_ios: true
+  windows:
+    generate: true
+    image_path: assets/icon.jpg
+    icon_size: 256

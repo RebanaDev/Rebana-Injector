@@ -1,0 +1,22 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+pubspec.lock
+
+# Scaffolding hasil generate (lihat tool/ci/prepare.sh)
+android/
+windows/
+linux/
+macos/
+ios/
+web/
+
+# Editor / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
